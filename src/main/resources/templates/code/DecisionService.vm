@@ -1,0 +1,92 @@
+package ${packagename}.model;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.blazesoft.server.base.NdServiceException;
+import com.blazesoft.server.local.NdLocalServerException;
+${importStatement}
+
+/**
+ * The Class DecisionService.
+ */
+public class DecisionService {
+
+	/** The Constant logger. */
+	static final Logger logger = LoggerFactory.getLogger(DecisionServiceFactory.class);
+
+	/** The blaze server. */
+	private BlazeServer blazeServer;
+
+	/** The rule service name. */
+	private String ruleServiceName;
+
+	/** The score method name. */
+	private String scoreMethodName;
+
+	/** The strategy method name. */
+	private String strategyMethodName;
+
+	/**
+	 * Instantiates a new decision service.
+	 *
+	 * @param blazeServer the blaze server
+	 * @param ruleServiceName the rule service name
+	 * @param scoreMethodName the score method name
+	 * @param strategyMethodName the strategy method name
+	 */
+	public DecisionService(BlazeServer blazeServer, String ruleServiceName, String scoreMethodName,
+			String strategyMethodName) {
+		this.blazeServer = blazeServer;
+		this.ruleServiceName = ruleServiceName;
+		this.scoreMethodName = scoreMethodName;
+		this.strategyMethodName = strategyMethodName;
+	}
+
+	/**
+	 * Gets the blaze server.
+	 *
+	 * @return the blaze server
+	 */
+	public BlazeServer getBlazeServer() {
+		return this.blazeServer;
+	}
+
+	/**
+	 * Invoke score.
+	 *
+	 * @param request the request
+	 * @return the score
+	 */
+	public ${serviceResponseObj} invokeScore(${serviceRequestObj} request) {
+
+		
+		${serviceResponseObj} response = null;
+		try {
+			response = (${serviceResponseObj}) blazeServer.invoke(ruleServiceName, scoreMethodName, request);
+		} catch (NdLocalServerException | NdServiceException e) {
+			throw new RuntimeException(e);
+		}
+		
+		return response;
+	}
+
+	/**
+	 * Invoke strategy.
+	 *
+	 * @param request the request
+	 * @return the score
+	 */
+	public ${serviceResponseObj} invokeStrategy(${serviceRequestObj} request) {
+
+		${serviceResponseObj} response = null;
+		try {
+			response = (${serviceResponseObj}) blazeServer.invoke(ruleServiceName, strategyMethodName, request);
+		} catch (NdLocalServerException | NdServiceException e) {
+			throw new RuntimeException(e);
+		}
+		
+		return response;
+	}
+
+}

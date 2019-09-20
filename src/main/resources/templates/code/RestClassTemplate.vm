@@ -1,0 +1,78 @@
+package  ${packagename};
+
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import ${packagename}.model.DecisionServiceFactory;
+
+${importStatement}
+
+
+@RestController
+@RequestMapping("${serviceEntryPoint}")
+public class APIController {
+	
+	@Autowired
+	private DecisionServiceFactory decisionServiceFactory;
+	
+	Logger logger = LoggerFactory.getLogger(APIController.class);
+	
+	
+	
+#foreach( $service in $serviceDetails)
+	@PostMapping(value = "${service.getEntryPointID()}", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}, 
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+	public @ResponseBody ResponseEntity<${service.getSrlReturnType()}> ${service.getSrlName()}(@RequestBody ${service.getSrlArgumentType()} requestObj) {
+	
+	    ${service.getSrlReturnType()} responseObject = decisionServiceFactory.getService("${serviceEntryPoint}").invokeScore(requestObj);
+		return new ResponseEntity<${service.getSrlReturnType()}>(responseObject, HttpStatus.OK);
+	}
+	
+	
+	
+	
+	
+#end
+	/*
+	@RequestMapping(value = "score", method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}, 
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+	public @ResponseBody ResponseEntity<ScoreResponse> process(@RequestBody ${requestBodyObject} requestObj) {
+		
+		try {
+			dataContractValidator.validate(requestObj);
+		} catch (Exception e) {		
+			logger.error(String.format("Schema validation failure: %s",e.getMessage()));
+			ScoreResponse scoreResponse = new ScoreResponse();
+			scoreResponse.setError(e.getMessage());
+			return new ResponseEntity<ScoreResponse>(scoreResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("ScoreRequest : %s", PrettyPrintUtil.ObjectToString(requestObj)));
+		}
+		
+		ScoreResponse scoreResponse = appScoreService.score(requestObj);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("ScoreResponse : %s", PrettyPrintUtil.ObjectToString(scoreResponse)));
+		}
+		
+		ResponseEntity<ScoreResponse> responseEntity = new ResponseEntity<ScoreResponse>(scoreResponse, HttpStatus.OK);
+		return responseEntity;
+	}*/
+	
+}
+
+
+
+
+

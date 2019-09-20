@@ -1,0 +1,38 @@
+package ${packagename};
+
+import com.blazesoft.server.base.NdServiceException;
+import com.blazesoft.server.base.NdServiceSessionException;
+import com.blazesoft.server.config.NdServerConfig;
+import com.blazesoft.server.deploy.NdStatelessServer;
+import com.blazesoft.server.local.NdLocalServerException;
+
+/**
+ * The Class BlazeServer.
+ */
+public class BlazeServer extends NdStatelessServer {
+	
+	/**
+	 * Instantiates a new blaze server.
+	 *
+	 * @param ndServerConfig the nd server config
+	 * @throws NdLocalServerException the nd local server exception
+	 */
+	public BlazeServer(NdServerConfig ndServerConfig) throws NdLocalServerException {
+		super(ndServerConfig);
+	}
+	
+	/**
+	 * Invoke.
+	 *
+	 * @param ruleServiceName the rule service name
+	 * @param methodName the method name
+	 * @param request the request
+	 * @return the object
+	 * @throws NdServiceSessionException the nd service session exception
+	 * @throws NdLocalServerException the nd local server exception
+	 * @throws NdServiceException the nd service exception
+	 */
+	public Object invoke(String ruleServiceName, String methodName, Object request) throws NdServiceSessionException, NdLocalServerException, NdServiceException {
+		return invokeService(ruleServiceName, methodName, null, new Object[] { request });
+	}
+}

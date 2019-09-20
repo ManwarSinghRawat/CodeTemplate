@@ -1,0 +1,126 @@
+package ${packagename}.model;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.stereotype.Component;
+
+import com.blazesoft.server.base.NdServerException;
+import com.blazesoft.server.local.NdLocalServerException;
+
+/**
+ * A factory for creating DecisionService objects.
+ */
+@Component
+public class DecisionServiceFactory {
+	
+	/** The Constant logger. */
+	static final Logger logger = LoggerFactory.getLogger(DecisionServiceFactory.class);
+
+	/** The decision service name map. */
+	private Map<String, DecisionService> decisionServiceNameMap;
+	
+	/** The blaze model repo path. */
+	@Value("${blaze.model.repo}")
+	private String blazeModelRepoPath;
+	
+	
+	@Value("${clientids}")
+	private String clientIDs;
+	
+	/**
+	 * Initialize.
+	 */
+	@PostConstruct
+	public void initialize() {
+		decisionServiceNameMap = new HashMap<String, DecisionService>();
+		Properties blazeProperties = null;
+		try {
+			Resource resource = new ClassPathResource("application.properties");
+			blazeProperties = PropertiesLoaderUtils.loadProperties(resource);
+		} catch (IOException e1) {
+			
+			logger.error(e1.getMessage());
+		}
+			
+		String[] ids = clientIDs.split(",");
+		
+		logger.info("Client IDs Configured: " + Arrays.toString(ids));
+		
+		for (String id : ids) {
+			BlazeServer blazeServer = null;
+			DecisionService decisionService;
+			String ndServerConfig = blazeProperties.getProperty(id + ".blaze.server.file" );
+			String ruleServiceName = blazeProperties.getProperty(id + ".blaze.server.name" );
+			String scoreMethodName = blazeProperties.getProperty(id + ".blaze.score.entryPoint" );
+			String strategyMethodName = blazeProperties.getProperty(id + ".blaze.strategy.entryPoint" );
+			try {
+						
+			blazeServer = (BlazeServer) BlazeServer.createStatelessServer(ndServerConfig);			
+						
+			logger.info("Initlized Blaze Server for " + id);
+			
+			} catch (NdLocalServerException e) {
+				logger.error(String.format("Unable to initilize Blaze Server for %s, %s. Skipping..",ndServerConfig,ruleServiceName));
+				logger.error("Exception Details: ", e);
+			}
+			
+			decisionService = new DecisionService( blazeServer, ruleServiceName, scoreMethodName,strategyMethodName);
+			decisionServiceNameMap.put(id, decisionService);
+		}
+	}
+	
+	/**
+	 * Gets the service.
+	 *
+	 * @param serviceName the service name
+	 * @return the service
+	 */
+	public DecisionService getService(String serviceName) {
+		return decisionServiceNameMap.get(serviceName);
+	}
+	
+	/**
+	 * Are all decisions servicable.
+	 *
+	 * @return true, if successful
+	 */
+	public boolean areAllDecisionsServicable() {
+		boolean servicable = true;
+		for (DecisionService decisionService: decisionServiceNameMap.values()) {
+			if (decisionService.getBlazeServer() == null) {
+				servicable = false;
+			}
+		}
+		
+		return servicable;
+	}
+	
+	/**
+	 * Destroy.
+	 */
+	@PreDestroy
+	public void destroy() {
+		for (DecisionService decisionService: decisionServiceNameMap.values()) {
+			if (decisionService != null && decisionService.getBlazeServer() != null) {
+				try {
+					decisionService.getBlazeServer().shutdown();
+				} catch (NdServerException e) {
+					logger.error(String.format("Exception during shutdown of BlazeServer with %s", decisionService.getBlazeServer().getServerId().getConfigurationName()), e);
+				}
+			}
+		}
+	}
+}

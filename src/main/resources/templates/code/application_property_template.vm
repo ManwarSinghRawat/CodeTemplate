@@ -1,0 +1,17 @@
+
+#Spring Boot Actuator
+management.port:9080
+endpoints.enabled=false
+endpoints.health.enabled=true
+management.health.diskspace.enabled=false
+
+
+blaze.model.repo= ${adbFilePath}
+clientids = ${clientIDs}
+#foreach( $serverFile in $serverFileDetails)
+${serverFile.getName()}.blaze.server.file= ${serverFile.getServerFilePath()}
+${serverFile.getName()}.blaze.score.entryPoint=scoreEntrypoint
+${serverFile.getName()}.blaze.strategy.entryPoint=strategyEntrypoint
+${serverFile.getName()}.blaze.server.name=ES Rule Service Definition
+#end
+
